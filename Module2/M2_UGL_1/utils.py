@@ -10,23 +10,19 @@ from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image  # (kept if you need it elsewhere)
+from dotenv import load_dotenv
 from openai import OpenAI
 from anthropic import Anthropic
 from html import escape
 
 # === Env & Clients ===
-# Paste your API keys below to run locally
-openai_api_key = "<your OpenAI API key here>"
-anthropic_api_key = "<your Anthropic API key here>"
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+anthropic_api_key = os.getenv("ANTHROPIC_API_KEY")
 
-openai_client = OpenAI(api_key=openai_api_key)
-anthropic_client = Anthropic(api_key=anthropic_api_key)
-
-# The line below is the course platform's internal proxy — only works inside DeepLearning.AI's Jupyter environment.
-# Uncomment it if you are running on the course platform; keep it commented for local use with your own API keys.
-# anthropic_client = Anthropic(
-#     base_url="http://jupyter-api-proxy.internal.dlai/rev-proxy/anthropic"
-# )
+# Both clients read keys from env by default; explicit is also fine:
+openai_client = OpenAI(api_key=openai_api_key) if openai_api_key else OpenAI()
+anthropic_client = Anthropic(api_key=anthropic_api_key) if anthropic_api_key else Anthropic()
 
 
 def get_response(model: str, prompt: str) -> str:
@@ -46,7 +42,7 @@ def get_response(model: str, prompt: str) -> str:
             input=prompt,
         )
         return response.output_text
-
+    
 # === Data Loading ===
 def load_and_prepare_data(csv_path: str) -> pd.DataFrame:
     """Load CSV and derive date parts commonly used in charts."""
@@ -135,8 +131,8 @@ def print_html(content: Any, title: str | None = None, is_image: bool = False):
       font-size:14px;
       color:#111;
     }
-    /* Only affects INSIDE the card */
-    .pretty-card pre,
+    /* 🔒 Only affects INSIDE the card */
+    .pretty-card pre, 
     .pretty-card code {
       background: #f3f4f6;
       color: #111;
@@ -154,7 +150,7 @@ def print_html(content: Any, title: str | None = None, is_image: bool = False):
       font-size: 13px;
       color: #111;
     }
-    .pretty-card table.pretty-table th,
+    .pretty-card table.pretty-table th, 
     .pretty-card table.pretty-table td {
       border: 1px solid #e5e7eb;
       padding: 6px 8px;
@@ -168,9 +164,9 @@ def print_html(content: Any, title: str | None = None, is_image: bool = False):
     card = f'<div class="pretty-card">{title_html}{rendered}</div>'
     display(HTML(css + card))
 
+    
 
-
-
+    
 def image_anthropic_call(model_name: str, prompt: str, media_type: str, b64: str) -> str:
     """
     Call Anthropic Claude (messages.create) with text+image and return *all* text blocks concatenated.
